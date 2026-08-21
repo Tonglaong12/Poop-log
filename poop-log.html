@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poop Log — บันทึกการขับถ่าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F3F8F1;
+    --surface: #FFFFFF;
+    --surface-soft: #EAF3EA;
+    --ink: #3F3A34;
+    --ink-soft: #8A8177;
+    --ink-faint: #B7AFA4;
+    --accent: #E8A97D;
+    --accent-deep: #C97F52;
+    --accent-mint: #7FB69E;
+    --accent-mint-deep: #5C9B82;
+    --warn: #D97B7B;
+    --warn-deep: #C15C5C;
+    --radius-lg: 28px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --shadow-soft: 0 8px 24px rgba(90, 74, 58, 0.08);
+    --shadow-lift: 0 16px 40px rgba(90, 74, 58, 0.14);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Quicksand', sans-serif;
+    min-height: 100vh;
+  }
+
+  body{
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(127,182,158,0.14), transparent 40%),
+      radial-gradient(circle at 92% 85%, rgba(232,169,125,0.16), transparent 45%);
+    background-attachment: fixed;
+  }
+
+  .wrap{
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  .header{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .mascot{
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    animation: bob 3.4s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .mascot{ animation: none; }
+  }
+
+  @keyframes bob{
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
+  }
+
+  .header-text h1{
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .header-text p{
+    margin: 2px 0 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /* ---------- Stats bar ---------- */
+  .stats{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card{
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stat-icon{
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.month{ background: var(--surface-soft); }
+  .stat-icon.streak{ background: #FBEADC; }
+
+  .stat-num{
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-label{
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-top: 3px;
+  }
+
+  /* ---------- Calendar card ---------- */
+  .cal-card{
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px 18px 22px;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .cal-nav{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .cal-nav-btn{
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--surface-soft);
+    color: var(--accent-deep);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  .cal-nav-btn:hover{ background: #DEEEE1; transform: scale(1.06); }
+  .cal-nav-btn:focus-visible{ outline: 3px solid var(--accent-mint); outline-offset: 2px; }
+
+  .cal-title-group{
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .cal-title{
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .cal-today-link{
+    font-size: 12px;
+    color: var(--accent-mint-deep);
+    font-weight: 700;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0 0;
+  }
+
+  .weekdays{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 6px;
+  }
+
+  .weekdays span{
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .day-cell{
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--ink);
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+
+  .day-cell:hover{ background: var(--surface-soft); }
+  .day-cell:focus-visible{ outline: 3px solid var(--accent-mint); outline-offset: 1px; }
+  .day-cell:active{ transform: scale(0.94); }
+
+  .day-cell.empty{ cursor: default; visibility: hidden; }
+
+  .day-cell.today{
+    box-shadow: inset 0 0 0 2px var(--accent-mint);
+    font-weight: 700;
+  }
+
+  .day-cell.logged{
+    background: #FBEADC;
+  }
+
+  .day-cell.logged:hover{ background: #F7DFC6; }
+
+  @keyframes popLog{
+    0%{ transform: scale(1); }
+    35%{ transform: scale(1.18); }
+    60%{ transform: scale(0.95); }
+    100%{ transform: scale(1); }
+  }
+
+  .day-cell.pop{ animation: popLog 0.38s ease; }
+
+  @media (prefers-reduced-motion: reduce){
+    .day-cell.pop{ animation: none; }
+  }
+
+  .day-cell .badge{
+    width: 15px;
+    height: 15px;
+    margin-top: 2px;
+  }
+
+  .day-cell .count{
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--accent-deep);
+  }
+
+  /* ---------- Empty state ---------- */
+  .empty-state{
+    text-align: center;
+    padding: 10px 10px 4px;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  .empty-state strong{ color: var(--ink); }
+
+  /* ---------- Day panel (bottom sheet / modal) ---------- */
+  .overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(63, 58, 52, 0.32);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 40;
+  }
+
+  .overlay.show{ opacity: 1; pointer-events: auto; }
+
+  .panel{
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--surface);
+    border-radius: 26px 26px 0 0;
+    padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(.32,.72,0,1);
+    z-index: 41;
+    max-height: 82vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .panel.show{ transform: translateY(0); }
+
+  @media (min-width: 560px){
+    .panel{
+      left: 50%;
+      right: auto;
+      bottom: auto;
+      top: 50%;
+      transform: translate(-50%, -46%) scale(0.96);
+      opacity: 0;
+      width: 90%;
+      max-width: 420px;
+      border-radius: var(--radius-lg);
+      pointer-events: none;
+    }
+    .panel.show{
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .panel-handle{
+    width: 40px;
+    height: 4px;
+    background: var(--ink-faint);
+    border-radius: 4px;
+    margin: 0 auto 14px;
+    opacity: 0.5;
+  }
+
+  @media (min-width: 560px){ .panel-handle{ display: none; } }
+
+  .panel-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .panel-title{
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .panel-close{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--surface-soft);
+    color: var(--ink-soft);
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .panel-close:focus-visible{ outline: 3px solid var(--accent-mint); outline-offset: 2px; }
+
+  .entry-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .entry-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface-soft);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+
+  .entry-mood{ font-size: 20px; flex-shrink: 0; }
+
+  .entry-info{ flex: 1; min-width: 0; }
+
+  .entry-time{ font-weight: 700; font-size: 13.5px; }
+
+  .entry-note{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .entry-del{
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .entry-del:hover{ background: #F3DCDC; color: var(--warn-deep); }
+  .entry-del:focus-visible{ outline: 3px solid var(--accent-mint); outline-offset: 1px; }
+
+  .no-entries{
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    padding: 14px 0;
+  }
+
+  /* ---------- Add form ---------- */
+  .add-form{
+    border-top: 1px solid var(--surface-soft);
+    padding-top: 16px;
+  }
+
+  .add-form.hidden{ display: none; }
+
+  .field-label{
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 7px;
+    display: block;
+  }
+
+  .mood-picker{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .mood-btn{
+    flex: 1;
+    border: 2px solid var(--surface-soft);
+    background: var(--surface-soft);
+    border-radius: var(--radius-sm);
+    padding: 10px 4px 8px;
+    font-size: 22px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+
+  .mood-btn span{
+    display: block;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+
+  .mood-btn:hover{ transform: translateY(-1px); }
+  .mood-btn.active{ border-color: var(--accent); background: #FBEADC; }
+  .mood-btn:focus-visible{ outline: 3px solid var(--accent-mint); outline-offset: 2px; }
+
+  .field-row{
+    margin-bottom: 14px;
+  }
+
+  input[type="time"], input[type="text"]{
+    width: 100%;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--surface-soft);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+  }
+
+  input[type="time"]:focus, input[type="text"]:focus{
+    outline: none;
+    border-color: var(--accent-mint);
+  }
+
+  input[type="text"]::placeholder{ color: var(--ink-faint); font-weight: 500; }
+
+  .btn-primary{
+    width: 100%;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 13px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn-primary:hover{ background: var(--accent-deep); }
+  .btn-primary:active{ transform: scale(0.98); }
+  .btn-primary:focus-visible{ outline: 3px solid var(--accent-mint-deep); outline-offset: 2px; }
+
+  .btn-add-toggle{
+    width: 100%;
+    border: 2px dashed var(--ink-faint);
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  .btn-add-toggle:hover{ border-color: var(--accent); color: var(--accent-deep); }
+  .btn-add-toggle:focus-visible{ outline: 3px solid var(--accent-mint); outline-offset: 2px; }
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--ink);
+    color: #fff;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 11px 12px 11px 20px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 50;
+    box-shadow: var(--shadow-lift);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+
+  .toast.show{ pointer-events: auto; }
+
+  .toast-action{
+    background: rgba(255,255,255,0.16);
+    border: none;
+    color: #fff;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .toast-action:hover{ background: rgba(255,255,255,0.26); }
+
+  .toast.show{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .loading-note{
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 13px;
+    padding: 30px 0;
+  }
+
+  .sr-only{
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="header">
+    <svg class="mascot" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M50 8 C70 8 87 24 89 46 C91 68 79 88 57 92 C37 96 13 88 7 64 C1 42 14 16 36 9 C41 7.5 46 7.5 50 8 Z" fill="#E8A97D"/>
+      <path d="M50 8 C70 8 87 24 89 46 C91 68 79 88 57 92 C37 96 13 88 7 64 C1 42 14 16 36 9" fill="none" stroke="#C97F52" stroke-width="0" opacity="0"/>
+      <circle cx="40" cy="46" r="4.2" fill="#3F3A34"/>
+      <circle cx="63" cy="46" r="4.2" fill="#3F3A34"/>
+      <circle cx="32" cy="55" r="5" fill="#F7C4A6" opacity="0.7"/>
+      <circle cx="71" cy="55" r="5" fill="#F7C4A6" opacity="0.7"/>
+      <path d="M40 62 Q51 72 63 62" fill="none" stroke="#3F3A34" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M46 4 C45 -1 53 -1 51 5" fill="none" stroke="#C97F52" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="header-text">
+      <h1>Poop Log</h1>
+      <p>บันทึกวันดี ๆ ของระบบขับถ่าย</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon month">📅</div>
+      <div>
+        <div class="stat-num" id="statMonth">0</div>
+        <div class="stat-label">ครั้งในเดือนนี้</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon streak">🔥</div>
+      <div>
+        <div class="stat-num" id="statStreak">0</div>
+        <div class="stat-label">วันติดต่อกัน</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cal-card">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" id="prevMonth" aria-label="เดือนก่อนหน้า">‹</button>
+      <div class="cal-title-group">
+        <p class="cal-title" id="calTitle">—</p>
+        <button class="cal-today-link" id="gotoToday">ไปวันนี้</button>
+      </div>
+      <button class="cal-nav-btn" id="nextMonth" aria-label="เดือนถัดไป">›</button>
+    </div>
+
+    <div class="weekdays">
+      <span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span>
+    </div>
+
+    <div class="grid" id="calGrid">
+      <div class="loading-note">กำลังโหลดข้อมูล…</div>
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      แตะวันที่ไหนก็ได้เพื่อบันทึกทันที — ลองแตะที่ <strong>วันนี้</strong> ดูสิ 🌱
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+  <div class="panel-handle"></div>
+  <div class="panel-head">
+    <p class="panel-title" id="panelTitle">—</p>
+    <button class="panel-close" id="panelClose" aria-label="ปิด">✕</button>
+  </div>
+
+  <div class="entry-list" id="entryList"></div>
+
+  <button class="btn-add-toggle" id="showAddForm">+ เพิ่มบันทึกอีกครั้ง</button>
+
+  <div class="add-form hidden" id="addForm">
+    <span class="field-label">ความรู้สึก</span>
+    <div class="mood-picker" id="moodPicker">
+      <button type="button" class="mood-btn" data-mood="great">😊<span>โล่งสบาย</span></button>
+      <button type="button" class="mood-btn" data-mood="ok">😐<span>ปกติ</span></button>
+      <button type="button" class="mood-btn" data-mood="hard">😣<span>ไม่สบาย</span></button>
+    </div>
+
+    <div class="field-row">
+      <span class="field-label">เวลา</span>
+      <input type="time" id="entryTime">
+    </div>
+
+    <div class="field-row">
+      <span class="field-label">หมายเหตุ (ถ้ามี)</span>
+      <input type="text" id="entryNote" maxlength="60" placeholder="เช่น หลังมื้อเช้า, กินโยเกิร์ต">
+    </div>
+
+    <button class="btn-primary" id="saveEntry">บันทึก</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">บันทึกแล้ว 🌿</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const THAI_MONTHS = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+  const MOOD_EMOJI = { great: "😊", ok: "😐", hard: "😣" };
+
+  let entries = {};       // { "YYYY-MM-DD": [ {id, time, mood, note}, ... ] }
+  let viewYear, viewMonth; // 0-indexed month
+  let selectedDate = null;
+  let selectedMood = "ok";
+  let storageReady = false;
+
+  const today = new Date();
+  const todayKey = fmtKey(today);
+
+  function fmtKey(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+
+  // ---------- Storage ----------
+  async function loadEntries(){
+    try{
+      const result = await window.storage.get("entries", false);
+      if(result && result.value){
+        entries = JSON.parse(result.value);
+      }
+    }catch(e){
+      entries = {};
+    }
+    storageReady = true;
+  }
+
+  async function persist(){
+    try{
+      await window.storage.set("entries", JSON.stringify(entries), false);
+    }catch(e){
+      showToast("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง");
+    }
+  }
+
+  // ---------- Rendering: calendar ----------
+  function renderCalendar(){
+    const grid = document.getElementById("calGrid");
+    const title = document.getElementById("calTitle");
+    title.textContent = `${THAI_MONTHS[viewMonth]} ${viewYear + 543}`;
+
+    const firstOfMonth = new Date(viewYear, viewMonth, 1);
+    const startOffset = firstOfMonth.getDay(); // 0 = Sun
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    let html = "";
+
+    for(let i=0; i<startOffset; i++){
+      html += `<div class="day-cell empty"></div>`;
+    }
+
+    for(let d=1; d<=daysInMonth; d++){
+      const dateObj = new Date(viewYear, viewMonth, d);
+      const key = fmtKey(dateObj);
+      const dayEntries = entries[key] || [];
+      const isToday = key === todayKey;
+      const isLogged = dayEntries.length > 0;
+
+      let cls = "day-cell";
+      if(isToday) cls += " today";
+      if(isLogged) cls += " logged";
+
+      let badge = "";
+      if(isLogged){
+        badge = `<svg class="badge" viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M50 8 C70 8 87 24 89 46 C91 68 79 88 57 92 C37 96 13 88 7 64 C1 42 14 16 36 9 C41 7.5 46 7.5 50 8 Z" fill="#C97F52"/>
+        </svg>`;
+      }
+
+      const countBadge = dayEntries.length > 1 ? `<span class="count">×${dayEntries.length}</span>` : "";
+
+      const label = isLogged
+        ? `${d} ${THAI_MONTHS[viewMonth]}, มีบันทึก ${dayEntries.length} ครั้ง, แตะเพื่อดูหรือแก้ไข`
+        : `${d} ${THAI_MONTHS[viewMonth]}, แตะเพื่อบันทึกทันที`;
+
+      html += `<button type="button" class="${cls}" data-date="${key}" aria-label="${label}">
+        ${d}${badge}${countBadge}
+      </button>`;
+    }
+
+    grid.innerHTML = html;
+
+    grid.querySelectorAll(".day-cell:not(.empty)").forEach(cell=>{
+      cell.addEventListener("click", ()=>{
+        const key = cell.dataset.date;
+        const hasEntries = entries[key] && entries[key].length > 0;
+        if(hasEntries){
+          openPanel(key);
+        }else{
+          quickLog(key, cell);
+        }
+      });
+    });
+
+    updateStats();
+    updateEmptyState();
+  }
+
+  function updateEmptyState(){
+    const hasAny = Object.keys(entries).some(k => entries[k] && entries[k].length > 0);
+    document.getElementById("emptyState").style.display = hasAny ? "none" : "block";
+  }
+
+  function updateStats(){
+    const monthPrefix = `${viewYear}-${pad2(viewMonth+1)}`;
+    let monthCount = 0;
+    Object.keys(entries).forEach(k=>{
+      if(k.startsWith(monthPrefix)) monthCount += entries[k].length;
+    });
+    document.getElementById("statMonth").textContent = monthCount;
+    document.getElementById("statStreak").textContent = computeStreak();
+  }
+
+  function computeStreak(){
+    let streak = 0;
+    let cursor = new Date();
+    // if today has no entry yet, start counting from yesterday
+    if(!(entries[fmtKey(cursor)] && entries[fmtKey(cursor)].length > 0)){
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while(entries[fmtKey(cursor)] && entries[fmtKey(cursor)].length > 0){
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  // ---------- Panel ----------
+  function openPanel(dateKey){
+    selectedDate = dateKey;
+    const overlay = document.getElementById("overlay");
+    const panel = document.getElementById("panel");
+    const d = new Date(dateKey + "T00:00:00");
+    document.getElementById("panelTitle").textContent = `${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${d.getFullYear()+543}`;
+
+    resetAddForm();
+    renderEntryList();
+
+    overlay.classList.add("show");
+    panel.classList.add("show");
+  }
+
+  function closePanel(){
+    document.getElementById("overlay").classList.remove("show");
+    document.getElementById("panel").classList.remove("show");
+    selectedDate = null;
+  }
+
+  function renderEntryList(){
+    const list = document.getElementById("entryList");
+    const dayEntries = (entries[selectedDate] || []).slice().sort((a,b)=> a.time.localeCompare(b.time));
+
+    if(dayEntries.length === 0){
+      list.innerHTML = `<div class="no-entries">ยังไม่มีบันทึกในวันนี้</div>`;
+      return;
+    }
+
+    list.innerHTML = dayEntries.map(e => `
+      <div class="entry-row" data-id="${e.id}">
+        <div class="entry-mood">${MOOD_EMOJI[e.mood] || "😐"}</div>
+        <div class="entry-info">
+          <div class="entry-time">${e.time}</div>
+          ${e.note ? `<div class="entry-note">${escapeHtml(e.note)}</div>` : ""}
+        </div>
+        <button class="entry-del" data-id="${e.id}" aria-label="ลบบันทึกนี้">✕</button>
+      </div>
+    `).join("");
+
+    list.querySelectorAll(".entry-del").forEach(btn=>{
+      btn.addEventListener("click", ()=> deleteEntry(btn.dataset.id));
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function resetAddForm(){
+    document.getElementById("addForm").classList.add("hidden");
+    document.getElementById("showAddForm").style.display = "block";
+    selectedMood = "ok";
+    document.querySelectorAll(".mood-btn").forEach(b => b.classList.toggle("active", b.dataset.mood === "ok"));
+    document.getElementById("entryNote").value = "";
+    const now = new Date();
+    document.getElementById("entryTime").value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+  }
+
+  async function quickLog(dateKey, cellEl){
+    const now = new Date();
+    if(!entries[dateKey]) entries[dateKey] = [];
+    entries[dateKey].push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      time: `${pad2(now.getHours())}:${pad2(now.getMinutes())}`,
+      mood: "ok",
+      note: ""
+    });
+
+    await persist();
+    renderCalendar();
+
+    if(cellEl){
+      const freshCell = document.querySelector(`.day-cell[data-date="${dateKey}"]`);
+      if(freshCell){
+        freshCell.classList.add("pop");
+        freshCell.addEventListener("animationend", ()=> freshCell.classList.remove("pop"), { once: true });
+      }
+    }
+
+    showToast("บันทึกแล้ว 🌿", {
+      label: "แก้ไข",
+      onClick: ()=> openPanel(dateKey)
+    });
+  }
+
+  async function saveEntry(){
+    const time = document.getElementById("entryTime").value || "00:00";
+    const note = document.getElementById("entryNote").value.trim();
+
+    if(!entries[selectedDate]) entries[selectedDate] = [];
+    entries[selectedDate].push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      time, mood: selectedMood, note
+    });
+
+    await persist();
+    renderEntryList();
+    renderCalendar();
+    resetAddForm();
+    showToast("บันทึกแล้ว 🌿");
+  }
+
+  async function deleteEntry(id){
+    if(!selectedDate || !entries[selectedDate]) return;
+    entries[selectedDate] = entries[selectedDate].filter(e => e.id !== id);
+    if(entries[selectedDate].length === 0) delete entries[selectedDate];
+    await persist();
+    renderEntryList();
+    renderCalendar();
+    showToast("ลบแล้ว");
+  }
+
+  let toastTimer = null;
+  function showToast(msg, action){
+    const t = document.getElementById("toast");
+    t.innerHTML = "";
+    t.appendChild(document.createTextNode(msg));
+    if(action){
+      const btn = document.createElement("button");
+      btn.textContent = action.label;
+      btn.className = "toast-action";
+      btn.addEventListener("click", ()=>{
+        t.classList.remove("show");
+        action.onClick();
+      });
+      t.appendChild(btn);
+    }
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> t.classList.remove("show"), action ? 3200 : 1800);
+  }
+
+  // ---------- Events ----------
+  document.getElementById("prevMonth").addEventListener("click", ()=>{
+    viewMonth--;
+    if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+    renderCalendar();
+  });
+
+  document.getElementById("nextMonth").addEventListener("click", ()=>{
+    viewMonth++;
+    if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+    renderCalendar();
+  });
+
+  document.getElementById("gotoToday").addEventListener("click", ()=>{
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+    renderCalendar();
+  });
+
+  document.getElementById("panelClose").addEventListener("click", closePanel);
+  document.getElementById("overlay").addEventListener("click", closePanel);
+
+  document.getElementById("showAddForm").addEventListener("click", ()=>{
+    document.getElementById("addForm").classList.remove("hidden");
+    document.getElementById("showAddForm").style.display = "none";
+  });
+
+  document.getElementById("moodPicker").addEventListener("click", (e)=>{
+    const btn = e.target.closest(".mood-btn");
+    if(!btn) return;
+    selectedMood = btn.dataset.mood;
+    document.querySelectorAll(".mood-btn").forEach(b => b.classList.toggle("active", b === btn));
+  });
+
+  document.getElementById("saveEntry").addEventListener("click", saveEntry);
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") closePanel();
+  });
+
+  // ---------- Init ----------
+  async function init(){
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+    await loadEntries();
+    renderCalendar();
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
